@@ -399,19 +399,80 @@
             border-color: var(--color-border-focus);
         }
 
+        .reset-button {
+            padding: 6px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #dc3545;
+            background-color: transparent;
+            border: 1px solid #dc3545;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            margin-left: auto;
+        }
+
+        .reset-button:hover {
+            color: white;
+            background-color: #dc3545;
+        }
+
         /* Table Structure */
         .table-wrapper {
-            overflow-x: auto;
             border: 1px solid var(--color-border);
             border-radius: 6px;
             margin-bottom: 16px;
+            overflow-x: auto;
+            display: block;
         }
 
         .table {
             display: table;
             width: 100%;
             border-collapse: collapse;
-            min-width: 600px;
+            min-width: auto;
+            max-width: 100%;
+        }
+
+        @media (max-width: 1400px) {
+            .table {
+                font-size: 14px;
+            }
+            .table-cell {
+                padding: 10px 8px;
+                min-width: 100px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .table {
+                font-size: 13px;
+            }
+            .table-cell {
+                padding: 8px 6px;
+                min-width: 90px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .table {
+                font-size: 12px;
+            }
+            .table-cell {
+                padding: 6px 5px;
+                min-width: 80px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .table {
+                font-size: 11px;
+            }
+            .table-cell {
+                padding: 5px 4px;
+                min-width: 70px;
+            }
         }
 
         .table-header {
@@ -433,6 +494,27 @@
             vertical-align: top;
             min-width: 120px;
             border-right: 1px solid var(--color-border);
+        }
+
+        /* Make Year column 10% narrower */
+        .table-cell:nth-child(3) {
+            min-width: 50px;
+        }
+
+        /* Make Language column 30% narrower */
+        .table-cell:nth-child(8) {
+            min-width: 84px;
+        }
+
+        /* Make Length and Type columns narrower */
+        .table-cell:nth-child(9),
+        .table-cell:nth-child(10) {
+            min-width: 70px;
+        }
+
+        /* Make Market column 20% narrower */
+        .table-cell:nth-child(2) {
+            min-width: 96px;
         }
 
         .table-cell:last-child {
@@ -650,7 +732,7 @@
         /* Chips Container */
         .chips-cell {
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column;
             gap: 6px;
             align-items: flex-start;
         }
@@ -1300,6 +1382,31 @@
             transform: translateY(0);
         }
 
+        /* Subtle Notification */
+        .subtle-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 1000;
+            pointer-events: none;
+            border: 1px solid #ffeaa7;
+        }
+
+        .subtle-notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .container {
@@ -1554,6 +1661,7 @@
                 <button class="separator-button" data-separator="-">-</button>
                 <button class="separator-button" data-separator=".">.</button>
             </div>
+            <button class="reset-button" id="resetBtn" title="Reset to initial stage">Reset</button>
         </div>
 
         <!-- Table -->
@@ -1570,7 +1678,7 @@
                         </div>
                         <div class="table-cell header-cell">
                             <div class="header-cell-content">
-                                <span>Region</span>
+                                <span>Market</span>
                                 <button class="edit-btn" data-column="region" title="Edit options">⚙</button>
                             </div>
                         </div>
@@ -1588,26 +1696,38 @@
                         </div>
                         <div class="table-cell header-cell">
                             <div class="header-cell-content">
-                                <span>Medium</span>
+                                <span>Spot</span>
                                 <button class="edit-btn" data-column="medium" title="Edit options">⚙</button>
                             </div>
                         </div>
                         <div class="table-cell header-cell">
                             <div class="header-cell-content">
-                                <span>Creative</span>
+                                <span>Title</span>
                                 <button class="edit-btn" data-column="creative" title="Edit options">⚙</button>
                             </div>
                         </div>
                         <div class="table-cell header-cell">
                             <div class="header-cell-content">
-                                <span>Resolution</span>
+                                <span>A. Ratio</span>
                                 <button class="edit-btn" data-column="resolution" title="Edit options">⚙</button>
                             </div>
                         </div>
                         <div class="table-cell header-cell">
                             <div class="header-cell-content">
-                                <span>Additional</span>
-                                <button class="edit-btn" data-column="Additional" title="Edit options">⚙</button>
+                                <span>Lang</span>
+                                <button class="edit-btn" data-column="lang" title="Edit options">⚙</button>
+                            </div>
+                        </div>
+                        <div class="table-cell header-cell">
+                            <div class="header-cell-content">
+                                <span>Length</span>
+                                <button class="edit-btn" data-column="length" title="Edit options">⚙</button>
+                            </div>
+                        </div>
+                        <div class="table-cell header-cell">
+                            <div class="header-cell-content">
+                                <span>Type</span>
+                                <button class="edit-btn" data-column="type" title="Edit options">⚙</button>
                             </div>
                         </div>
                     </div>
@@ -1637,7 +1757,13 @@
                         <div class="chips-cell" id="resolutionChips"></div>
                     </div>
                     <div class="table-cell">
-                        <div class="chips-cell" id="AdditionalChips"></div>
+                        <div class="chips-cell" id="langChips"></div>
+                    </div>
+                    <div class="table-cell">
+                        <div class="chips-cell" id="lengthChips"></div>
+                    </div>
+                    <div class="table-cell">
+                        <div class="chips-cell" id="typeChips"></div>
                     </div>
                 </div>
             </div>
@@ -1755,6 +1881,9 @@
     <!-- Toast -->
     <div class="toast-notification" id="toastNotification"></div>
 
+    <!-- Subtle Notification -->
+    <div class="subtle-notification" id="subtleNotification"></div>
+
     <!-- Drag Selection Elements -->
     <svg class="drag-selection-line" id="dragLine" style="display: none;"></svg>
     <div class="drag-tooltip" id="dragTooltip">Hold & drag to select</div>
@@ -1763,16 +1892,18 @@
     <script>
         const CONFIG = {
             separatorDefault: '_',
-            fileExtension: '.jpg',
+            fileExtension: '',
             columns: {
-                brand: { title: 'Brand', options: ['Nike', 'Adidas', 'Puma', 'Reebok', 'Asics', 'Brooks', 'Salomon', 'New Balance', 'Saucony', 'Skechers', 'Mizuno'] },
-                region: { title: 'Region', options: ['APAC', 'EMEA', 'LATAM', 'NA', 'US', 'EU', 'ASIA', 'IND'] },
-                year: { title: 'Year', options: ['2024', '2025', '2026'] },
-                campaign: { title: 'Campaign', options: ['SummerSale', 'WinterPromo', 'Q1Campaign', 'Q2Campaign', 'BlackFriday', 'NewYear'] },
-                medium: { title: 'Medium', options: ['Social', 'Email', 'Banner', 'Display', 'Video', 'Print', 'Web', 'Mobile', 'OOH'] },
-                creative: { title: 'Creative', options: ['Hero', 'Tile', 'V1', 'V2', 'MainAsset', 'Secondary', 'Carousel'] },
-                resolution: { title: 'Resolution', options: ['1080x1080', '1080x1920', '1920x1080', '300x250', '728x90', '1200x800', '2560x1440', '4K', 'Dynamic'] },
-                Additional: { title: 'Additional', options: ['30s', '2x', 'RGB', 'BW'] }
+                brand: { title: 'Brand', options: ['Sheba', 'Snickers', 'Twix', 'Airwaves', 'M&M', 'Extra', 'Refreshers'] },
+                region: { title: 'Market', options: ['Global', 'UK', 'HU', 'Finland', 'Norway', 'Netherlands', 'FR', 'Bulgaria'] },
+                year: { title: 'Year', options: ['2023', '2026'] },
+                campaign: { title: 'Campaign', options: ['alltheywant', 'Snickers Creamy', 'TIMTO', 'Ride the Airwaves', 'Bunny Roadside', 'Crispy-Rolls' ,'MW Extra Adaptation', 'DOOH Adaptation', 'Extra DOOH Video Updates', 'Freedent', 'Airwaves Localization'] },
+                medium: { title: 'Spot', options: ['olv', 'DOOH', 'Print Ad', 'shopping-wall-big-cities', 'shopping-digital-entertainment-seekers', 'city-digital-young-adults', 'Play Billboard - City Lade', 'OLV', 'OOH'] },
+                creative: { title: 'Title', options: ['robort', '48 Sheet', 'Portrait', 'JCD Roadside', 'Bauer Roadside', 'Digital 6 Sheet', 'Localisation brief', 'MW Finland Extra DOOH Adaptation', 'landscape', 'Gum_NL_EBALIGHT_P2', 'Freedent Chew Good Refreshers', 'Scroller Senior'] },
+                resolution: { title: 'A. Ratio', options: ['Dynamic', '9:16', '864x432', '210x297', '1080x1920', '1920 x 1080', '353x253'] },
+                lang: { title: 'Lang', options: ['eng', 'HU', 'fin', 'nl', 'FR', 'BG'] },
+                length: { title: 'Length', options: ['5s', '10s', 'Static', 'Video', '6s', '15s'] },
+                type: { title: 'Type', options: ['jpg', 'png', 'mov', 'mp4', 'jpeg'] }
             }
         };
 
@@ -1783,7 +1914,7 @@
             tempData: {},
             generatedNames: [],
             reorderMode: false,
-            columnOrder: Object.keys(CONFIG.columns),
+            columnOrder: ['brand', 'region', 'year', 'campaign', 'medium', 'creative', 'resolution', 'lang', 'length', 'type'],
             titleClickCount: 0
         };
 
@@ -2097,11 +2228,53 @@
             }
         }
 
+        // LocalStorage persistence with hard-refresh detection
+        function initLocalStorage() {
+            // Use sessionStorage as a session marker
+            // sessionStorage persists on normal reload but gets cleared on hard refresh (Shift+Reload)
+            const sessionMarker = sessionStorage.getItem('renamie_session');
+            const hasLocalData = localStorage.getItem('renamie_state') !== null;
+            
+            // If sessionMarker exists AND we have local data, this is a normal reload
+            if (sessionMarker === 'active' && hasLocalData) {
+                // Normal reload - restore only column options
+                const savedState = localStorage.getItem('renamie_state');
+                if (savedState) {
+                    try {
+                        const loadedState = JSON.parse(savedState);
+                        console.log('📥 Restored columns from localStorage:', loadedState.columns);
+                        // Restore ONLY columns options (newly added brands, markets, etc)
+                        if (loadedState.columns) CONFIG.columns = loadedState.columns;
+                    } catch (e) {
+                        console.error('Error loading saved state:', e);
+                        localStorage.removeItem('renamie_state');
+                    }
+                }
+            } else {
+                // Hard refresh (Shift+Reload), first load, or session cleared - clear localStorage
+                console.log('🔄 Hard refresh or first load detected - clearing data');
+                localStorage.removeItem('renamie_state');
+            }
+            
+            // Mark this session as active for next reload detection
+            sessionStorage.setItem('renamie_session', 'active');
+        }
+
+        function saveStateToLocalStorage() {
+            const stateToSave = {
+                columns: CONFIG.columns  // Save ONLY newly added column options
+            };
+            localStorage.setItem('renamie_state', JSON.stringify(stateToSave));
+            console.log('💾 Saved columns to localStorage:', stateToSave.columns);
+        }
+
         function init() {
+            initLocalStorage();
             renderAllChips();
             setupEventListeners();
             setupDragSelection();
             updatePreview();
+            renderGeneratedNamesTable();
         }
 
         function setupEventListeners() {
@@ -2156,6 +2329,28 @@
                     state.separator = e.target.dataset.separator;
                     updatePreview();
                 });
+            });
+
+            // Reset button
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                // Reset all selections to null
+                Object.keys(state.selections).forEach(key => {
+                    state.selections[key] = null;
+                });
+                // Reset separator to default
+                state.separator = CONFIG.separatorDefault;
+                // Update UI
+                elements.separatorButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.separator === state.separator) {
+                        btn.classList.add('active');
+                    }
+                });
+                // Re-render all chips
+                renderAllChips();
+                updatePreview();
+                updateCompareTab();
+                showToast('Reset to initial stage');
             });
 
             elements.editButtons.forEach(btn => {
@@ -2264,6 +2459,7 @@
             renderChips(state.editingColumn);
             updatePreview();
             closeEditModal();
+            saveStateToLocalStorage();
             showToast('Saved');
         }
 
@@ -2374,17 +2570,15 @@
 
         // Generated Names Functions
         function addGeneratedName() {
-            const filename = generateFilename();
+            const filename = generateFilename(false);  // No file extension
             if (!filename) {
                 showToast('Please select options first');
                 return;
             }
 
-            // Remove extension for storage
-            const nameWithoutExt = filename.replace(CONFIG.fileExtension, '');
-
-            if (!state.generatedNames.includes(nameWithoutExt)) {
-                state.generatedNames.push(nameWithoutExt);
+            // Store without extension
+            if (!state.generatedNames.includes(filename)) {
+                state.generatedNames.push(filename);
                 renderGeneratedNamesTable();
                 showToast('Name added!');
             } else {
@@ -2408,7 +2602,7 @@
                     <div class="names-col names-col-idx">${idx + 1}</div>
                     <div class="names-col"><span class="name-item">${name}</span></div>
                     <div class="names-col names-col-action">
-                        <button class="names-row-delete-btn" data-index="${idx}">Delete</button>
+                        <button class="names-row-delete-btn" data-index="${idx}" title="Delete">🗑️</button>
                     </div>
                 `;
 
@@ -2517,7 +2711,7 @@
                     CONFIG.columns = settingsData.columns;
                     state.columnOrder = settingsData.columnOrder;
                     state.separator = settingsData.separator || CONFIG.separatorDefault;
-                    CONFIG.fileExtension = settingsData.fileExtension || '.jpg';
+                    CONFIG.fileExtension = settingsData.fileExtension;
 
                     // Update separator buttons
                     elements.separatorButtons.forEach(btn => {
@@ -2544,15 +2738,33 @@
             document.getElementById('settingsFileInput').value = '';
         }
 
-        function generateFilename() {
+        function generateFilename(includeExtension = true) {
+            // Check if Type is selected
+            const hasType = state.selections['type'] !== null && state.selections['type'] !== undefined;
+            
             const parts = state.columnOrder
-                .map(col => state.selections[col])
+                .map((col, idx) => {
+                    const value = state.selections[col];
+                    if (!value) return null;
+                    // Skip Type here, we'll handle it separately
+                    if (col === 'type') return null;
+                    return value;
+                })
                 .filter(p => p);
-            return parts.length ? parts.join(state.separator) + CONFIG.fileExtension : '';
+            
+            // Build filename with proper separator handling
+            let filename = parts.join(state.separator);
+            
+            // If Type is selected, add it with dot separator (no other separator before it)
+            if (hasType) {
+                filename = filename ? filename + '.' + state.selections['type'] : '.' + state.selections['type'];
+            }
+            
+            return includeExtension ? filename + CONFIG.fileExtension : filename;
         }
 
         function updatePreview() {
-            const filename = generateFilename();
+            const filename = generateFilename(false);  // No file extension in preview
             if (filename) {
                 elements.previewText.textContent = filename;
                 elements.previewText.classList.remove('empty');
@@ -2565,7 +2777,7 @@
         }
 
         async function copyToClipboard() {
-            const filename = generateFilename();
+            const filename = generateFilename(true);  // Include file extension when copying
             if (!filename) return;
             try {
                 await navigator.clipboard.writeText(filename);
@@ -2583,6 +2795,15 @@
             setTimeout(() => {
                 elements.toastNotification.classList.remove('show');
             }, 2000);
+        }
+
+        function showSubtleNotification(message, duration = 3000) {
+            const subtleNotif = document.getElementById('subtleNotification');
+            subtleNotif.textContent = message;
+            subtleNotif.classList.add('show');
+            setTimeout(() => {
+                subtleNotif.classList.remove('show');
+            }, duration);
         }
 
         // Update Compare Tab
@@ -2764,6 +2985,7 @@
                 renamerElements.uploadZone.style.display = 'none';
                 document.getElementById('modifierSection').style.display = 'block';
                 updateCompareTab();
+                showSubtleNotification('📌 File extensions will use the original ZIP file types - Type selection is ignored', 4000);
                 showToast(`Found ${renamerState.files.length} image files`);
             } catch (err) {
                 showToast('Error reading ZIP file');
@@ -2920,11 +3142,19 @@
         // Generate renamed filename based on current selections
         async function generateRenamedFile(index) {
             const file = renamerState.files[index];
+            // Always use original file extension, ignore Type selection
             const ext = file.originalName.substring(file.originalName.lastIndexOf('.'));
             
             // Generate base name without extension for renamer
-            const parts = Object.keys(CONFIG.columns)
-                .map(col => state.selections[col])
+            const parts = state.columnOrder
+                .map((col) => {
+                    // Skip Type column in file renamer
+                    if (col === 'type') return null;
+                    const value = state.selections[col];
+                    if (!value) return null;
+                    // Add '.' before last part (Type would be here, but we skip it)
+                    return value;
+                })
                 .filter(p => p);
             let baseName = parts.length ? parts.join(state.separator) : '';
 
