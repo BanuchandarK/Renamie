@@ -1,0 +1,3060 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renamie - Builder & Renamer</title>
+    <style>
+        :root {
+            --color-bg-primary: #ffffff;
+            --color-bg-secondary: #f8f9fa;
+            --color-text-primary: #1a1a1a;
+            --color-text-secondary: #4a4a4a;
+            --color-border: #e0e0e0;
+            --color-chip-bg: #e8e8f0;
+            --color-chip-active: #056dce;
+            --color-chip-active-text: #ffffff;
+            --color-chip-hover: #d0d0e0;
+            --color-border-focus: #056dce;
+            --color-success: #28a745;
+            --color-preview-bg: #f0f4ff;
+            --color-preview-border: #056dce;
+            --border-radius: 20px;
+            --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            --transition: all 150ms ease-in-out;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-bg-primary: #1a1a1a;
+                --color-bg-secondary: #2d2d2d;
+                --color-text-primary: #f0f0f0;
+                --color-text-secondary: #b0b0b0;
+                --color-border: #404040;
+                --color-chip-bg: #404040;
+                --color-chip-hover: #505060;
+                --color-chip-active: #056dce;
+                --color-chip-active-text: #ffffff;
+                --color-border-focus: #056dce;
+                --color-preview-bg: #1e2845;
+                --color-preview-border: #056dce;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-bg-secondary);
+            color: var(--color-text-primary);
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background-color: var(--color-bg-primary);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 52px;
+            height: 52px;
+            padding: 0;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            flex-shrink: 0;
+            border-radius: 8px;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            color: var(--color-chip-active);
+        }
+
+        .logo-btn:hover .logo {
+            opacity: 0.8;
+        }
+
+        .logo-btn:focus-visible {
+            outline: 2px solid var(--color-border-focus);
+            outline-offset: 2px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .header p {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin: 2px 0 0 0;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        /* About Popup */
+        .about-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .about-popup.show {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .about-popup-content {
+            background-color: var(--color-bg-primary);
+            border-radius: 16px;
+            padding: 48px 40px;
+            max-width: 420px;
+            text-align: center;
+            position: relative;
+            animation: slideUp 0.3s ease-in-out;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .about-popup-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            background-color: transparent;
+            border: none;
+            color: var(--color-text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+
+        .about-popup-close:hover {
+            color: var(--color-text-primary);
+            background-color: var(--color-chip-bg);
+        }
+
+        .about-logo {
+            width: 80px;
+            height: 80px;
+            color: var(--color-chip-active);
+            margin: 0 auto 24px;
+        }
+
+        .about-popup-content h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            color: var(--color-text-primary);
+        }
+
+        .about-subtitle {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            margin: 0 0 20px 0;
+        }
+
+        .about-divider {
+            height: 1px;
+            background-color: var(--color-border);
+            margin: 20px 0;
+        }
+
+        .about-credit {
+            font-size: 14px;
+            color: var(--color-text-primary);
+            margin: 0;
+        }
+
+        .about-credit strong {
+            color: var(--color-chip-active);
+            font-weight: 600;
+        }
+
+        .header-btn {
+            padding: 8px 12px;
+            background-color: var(--color-chip-active);
+            color: var(--color-chip-active-text);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .header-btn:hover {
+            opacity: 0.9;
+        }
+
+        .header-btn:focus-visible {
+            outline: 3px solid var(--color-border-focus);
+            outline-offset: 2px;
+        }
+
+        .header-btn.outline-btn {
+            background-color: transparent;
+            color: var(--color-chip-active);
+            border: 2px solid var(--color-chip-active);
+            padding: 6px 12px;
+            font-weight: 500;
+        }
+
+        .header-btn.outline-btn:hover {
+            background-color: rgba(5, 109, 206, 0.08);
+            opacity: 1;
+        }
+
+        .header-btn.outline-btn:focus-visible {
+            outline: 3px solid var(--color-border-focus);
+            outline-offset: 2px;
+        }
+
+        .edit-toggle-btn {
+            padding: 8px 16px;
+            background-color: var(--color-chip-active);
+            color: var(--color-chip-active-text);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: var(--transition);
+            display: none;
+        }
+
+        .edit-toggle-btn.visible {
+            display: block;
+        }
+
+        .edit-toggle-btn:hover {
+            opacity: 0.9;
+        }
+
+        .edit-toggle-btn:focus-visible {
+            outline: 3px solid var(--color-border-focus);
+            outline-offset: 2px;
+        }
+
+        .edit-toggle-btn.reorder-mode {
+            background-color: var(--color-success);
+        }
+
+        /* Column Reorder Mode */
+        .table.reorder-mode .header-cell {
+            background-color: #e3f2fd;
+            border: 2px dashed var(--color-chip-active);
+        }
+
+        .table.reorder-mode {
+            cursor: grab;
+        }
+
+        .table-cell.dragging {
+            opacity: 0.5;
+        }
+
+        .reorder-controls {
+            display: flex;
+            gap: 4px;
+            margin-left: auto;
+        }
+
+        .reorder-btn {
+            padding: 4px 6px;
+            background-color: var(--color-chip-active);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .reorder-btn:hover {
+            opacity: 0.8;
+        }
+
+        .reorder-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Settings Bar */
+        .settings-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 10px 12px;
+            background-color: var(--color-bg-secondary);
+            border-radius: 6px;
+            border: 1px solid var(--color-border);
+        }
+
+        .settings-bar label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            white-space: nowrap;
+        }
+
+        .separator-toggle {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .separator-button {
+            padding: 6px 12px;
+            border: 1px solid var(--color-border);
+            background-color: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .separator-button:hover {
+            border-color: var(--color-border-focus);
+        }
+
+        .separator-button.active {
+            background-color: var(--color-border-focus);
+            color: white;
+            border-color: var(--color-border-focus);
+        }
+
+        /* Table Structure */
+        .table-wrapper {
+            overflow-x: auto;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+
+        .table {
+            display: table;
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        .table-header {
+            display: table-header-group;
+        }
+
+        .table-row {
+            display: table-row;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .table-row:last-child {
+            border-bottom: none;
+        }
+
+        .table-cell {
+            display: table-cell;
+            padding: 12px 10px;
+            vertical-align: top;
+            min-width: 120px;
+            border-right: 1px solid var(--color-border);
+        }
+
+        .table-cell:last-child {
+            border-right: none;
+        }
+
+        .header-cell {
+            background-color: var(--color-bg-secondary);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--color-text-secondary);
+        }
+
+        .header-cell-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .edit-btn {
+            padding: 3px 6px;
+            background-color: transparent;
+            color: var(--color-text-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            transition: var(--transition);
+            opacity: 0.6;
+        }
+
+        .edit-btn:hover {
+            opacity: 1;
+            background-color: var(--color-chip-bg);
+        }
+
+        /* Modifier Section */
+        .modifier-section {
+            margin-bottom: 20px;
+        }
+
+        .modifier-inputs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .modifier-inputs input {
+            padding: 8px 12px;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            font-size: 13px;
+            background-color: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .modifier-inputs input:focus {
+            outline: none;
+            border-color: var(--color-border-focus);
+            box-shadow: 0 0 0 3px var(--color-preview-bg);
+        }
+
+        /* Comparison Results */
+        .comparison-result {
+            margin-top: 12px;
+            padding: 12px;
+            background-color: var(--color-preview-bg);
+            border-left: 4px solid var(--color-preview-border);
+            border-radius: 4px;
+            font-size: 12px;
+            display: none;
+        }
+
+        .comparison-result.show {
+            display: block;
+        }
+
+        .comparison-highlight {
+            background-color: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-weight: 600;
+        }
+
+        .comparison-match {
+            color: var(--color-success);
+        }
+
+        .comparison-diff {
+            color: #dc3545;
+        }
+
+        /* Compare Section */
+        .compare-section {
+            display: block;
+        }
+
+        .compare-header {
+            margin-bottom: 20px;
+        }
+
+        .compare-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+            color: var(--color-text-primary);
+        }
+
+        .compare-header p {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin: 0;
+        }
+
+        .compare-table-wrapper {
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+
+        .compare-table {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .compare-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 12px;
+            border-bottom: 1px solid var(--color-border);
+            align-items: stretch;
+        }
+
+        .compare-row:last-child {
+            border-bottom: none;
+        }
+
+        .compare-row:nth-child(odd) {
+            background-color: var(--color-bg-secondary);
+        }
+
+        .compare-row.header {
+            background-color: var(--color-bg-secondary);
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--color-text-secondary);
+            padding: 12px;
+        }
+
+        .compare-column {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .compare-column-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .compare-text {
+            font-size: 13px;
+            color: var(--color-text-primary);
+            word-break: break-all;
+            padding: 8px 10px;
+            background-color: var(--color-bg-primary);
+            border-radius: 3px;
+            border: 1px solid var(--color-border);
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            line-height: 1.6;
+        }
+
+        .char-changed-red {
+            background-color: rgba(255, 0, 0, 0.15);
+            color: inherit;
+            font-weight: inherit;
+        }
+
+        .char-changed-green {
+            background-color: rgba(0, 128, 0, 0.15);
+            color: inherit;
+            font-weight: inherit;
+        }
+
+        .compare-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+            padding: 40px;
+            background-color: var(--color-bg-secondary);
+            border-radius: 6px;
+            border: 1px dashed var(--color-border);
+        }
+
+        .compare-empty-content {
+            text-align: center;
+            max-width: 400px;
+        }
+
+        /* Chips Container */
+        .chips-cell {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: flex-start;
+        }
+
+        /* Chips */
+        .chip {
+            padding: 6px 12px;
+            background-color: var(--color-chip-bg);
+            color: var(--color-text-primary);
+            border: 1px solid transparent;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: var(--transition);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .chip:hover {
+            background-color: var(--color-chip-hover);
+        }
+
+        .chip.active {
+            background-color: var(--color-chip-active);
+            color: var(--color-chip-active-text);
+        }
+
+        .chip:focus-visible {
+            outline: 2px solid var(--color-border-focus);
+            outline-offset: 1px;
+        }
+
+        /* Modal */
+        .edit-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .edit-overlay.active {
+            display: flex;
+        }
+
+        /* Tabs */
+        .tabs-container {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--color-border);
+            margin-bottom: 20px;
+        }
+
+        .tab-button {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            color: var(--color-text-secondary);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tab-button:hover {
+            color: var(--color-text-primary);
+        }
+
+        .tab-button.active {
+            color: var(--color-chip-active);
+            border-bottom-color: var(--color-chip-active);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* File Upload Section */
+        .upload-zone {
+            border: 2px dashed var(--color-border);
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background-color: var(--color-bg-secondary);
+            margin-bottom: 16px;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--color-chip-active);
+            background-color: var(--color-preview-bg);
+        }
+
+        .upload-zone.dragover {
+            border-color: var(--color-chip-active);
+            background-color: var(--color-preview-bg);
+        }
+
+        .upload-zone input {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .upload-text {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--color-text-primary);
+            margin-bottom: 4px;
+        }
+
+        .upload-subtext {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+        }
+
+        /* File List */
+        .files-section {
+            margin-top: 20px;
+        }
+
+        .files-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--color-text-secondary);
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .file-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 10px 12px;
+            background-color: var(--color-bg-secondary);
+            border-radius: 4px;
+            margin-bottom: 8px;
+            border-left: 3px solid var(--color-chip-active);
+        }
+
+        .file-item > div:first-child {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .file-item-info {
+            flex: 1;
+        }
+
+        .file-item-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--color-text-primary);
+            margin-bottom: 4px;
+            word-break: break-all;
+        }
+
+        .file-item-new-name {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+        }
+
+        .file-item-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: 12px;
+        }
+
+        .rename-btn {
+            padding: 6px 12px;
+            background-color: var(--color-chip-active);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .rename-btn:hover {
+            opacity: 0.9;
+        }
+
+        .rename-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .remove-btn {
+            padding: 6px 8px;
+            background-color: transparent;
+            color: var(--color-text-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: var(--transition);
+        }
+
+        .remove-btn:hover {
+            color: #d32f2f;
+            border-color: #d32f2f;
+        }
+
+        /* Action Bar */
+        .action-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .action-btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .action-btn-primary {
+            background-color: var(--color-chip-active);
+            color: white;
+            flex: 1;
+        }
+
+        .action-btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .action-btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-btn-secondary {
+            background-color: var(--color-chip-bg);
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-border);
+        }
+
+        .action-btn-secondary:hover {
+            background-color: var(--color-chip-hover);
+        }
+
+        .edit-modal {
+            background-color: var(--color-bg-primary);
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 450px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .modal-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .modal-input-group input {
+            flex: 1;
+            padding: 8px 10px;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            background-color: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            font-size: 13px;
+            font-family: var(--font-family);
+        }
+
+        .modal-input-group input:focus-visible {
+            outline: 2px solid var(--color-border-focus);
+            outline-offset: 0;
+        }
+
+        .modal-add-btn {
+            padding: 8px 12px;
+            background-color: var(--color-border-focus);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .modal-add-btn:hover {
+            opacity: 0.9;
+        }
+
+        .modal-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .modal-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background-color: var(--color-chip-bg);
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .modal-chip-remove {
+            background: none;
+            border: none;
+            color: var(--color-text-primary);
+            cursor: pointer;
+            padding: 0;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .modal-btn-save {
+            background-color: var(--color-chip-active);
+            color: white;
+        }
+
+        .modal-btn-save:hover {
+            opacity: 0.9;
+        }
+
+        .modal-btn-cancel {
+            background-color: var(--color-chip-bg);
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-border);
+        }
+
+        .modal-btn-cancel:hover {
+            background-color: var(--color-chip-hover);
+        }
+
+        /* Preview & Add Name Section */
+        .preview-add-section {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            margin-top: 16px;
+        }
+
+        .preview-section {
+            flex: 1;
+        }
+
+        .preview-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--color-text-secondary);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .preview-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            background-color: var(--color-chip-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            height: 44px;
+        }
+
+        .add-name-button {
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-chip-active);
+            background-color: var(--transparent);
+            border: 1px solid var(--color-chip-active);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-name-button:hover {
+            color: var(--color-chip-active-text);
+            background-color: var(--color-chip-active);
+        }
+
+        .add-name-button:focus-visible {
+            outline: 2px solid var(--color-border-focus);
+            outline-offset: 1px;
+        }
+
+        .preview-text {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-text-primary);
+            word-break: break-all;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+        }
+
+        .preview-text.empty {
+            color: var(--color-text-secondary);
+            font-style: italic;
+            opacity: 0.7;
+        }
+
+        .copy-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: auto;
+            height: auto;
+            padding: 0;
+            background-color: transparent;
+            color: var(--color-border-focus);
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .copy-button:hover {
+            opacity: 0.7;
+        }
+
+        .copy-button:active {
+            transform: scale(0.95);
+        }
+
+        .copy-button:focus-visible {
+            outline: 2px solid var(--color-border-focus);
+            outline-offset: 2px;
+            border-radius: 2px;
+        }
+
+        .copy-button:disabled {
+            color: var(--color-text-secondary);
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Generated Names Section */
+        .generated-names-section {
+            margin-top: 30px;
+        }
+
+        .generated-names-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 16px 0;
+            color: var(--color-text-primary);
+        }
+
+        .generated-names-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .generated-names-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+            color: var(--color-text-primary);
+        }
+
+        .names-table-wrapper {
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .names-table {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .names-row {
+            display: grid;
+            grid-template-columns: 50px 1fr 100px;
+            gap: 12px;
+            padding: 12px;
+            border-bottom: 1px solid var(--color-border);
+            align-items: center;
+        }
+
+        .names-row:last-child {
+            border-bottom: none;
+        }
+
+        .names-row:nth-child(odd):not(.header) {
+            background-color: var(--color-bg-secondary);
+        }
+
+        .names-row.header {
+            background-color: var(--color-bg-secondary);
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--color-text-secondary);
+        }
+
+        .names-col {
+            display: flex;
+            align-items: center;
+        }
+
+        .names-col-idx {
+            justify-content: center;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+        }
+
+        .names-col-action {
+            justify-content: center;
+        }
+
+        .name-item {
+            font-size: 13px;
+            color: var(--color-text-primary);
+            word-break: break-all;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+        }
+
+        .names-row-delete-btn {
+            padding: 4px 8px;
+            background-color: transparent;
+            color: var(--color-text-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: var(--transition);
+        }
+
+        .names-row-delete-btn:hover {
+            background-color: #ffcccc;
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .export-section {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .export-section .action-btn {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        /* Import/Export Section */
+        .import-export-section {
+            margin-bottom: 16px;
+        }
+
+        .import-export-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .import-export-controls .action-btn {
+            min-width: 140px;
+        }
+
+        /* Toast */
+        .toast-notification {
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            background-color: var(--color-success);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: var(--transition);
+            z-index: 1000;
+        }
+
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .table-cell {
+                min-width: 100px;
+                padding: 10px 8px;
+                font-size: 12px;
+            }
+
+            .chip {
+                font-size: 11px;
+                padding: 5px 10px;
+            }
+        }
+
+        /* Drag Select Feature */
+        .drag-selection-line {
+            position: fixed;
+            pointer-events: none;
+            z-index: 998;
+            stroke: #ffffff;
+            stroke-width: 1.5;
+            opacity: 0.7;
+            filter: none;
+        }
+
+        .drag-arrow {
+            fill: #ffffff;
+            opacity: 0.7;
+            filter: none;
+        }
+
+        .chip.drag-hover {
+            opacity: 0.85;
+        }
+
+        .chip.drag-selected {
+            background-color: var(--color-chip-active);
+            color: var(--color-chip-active-text);
+        }
+
+        /* Drag Tooltip */
+        .drag-tooltip {
+            position: fixed;
+            padding: 8px 12px;
+            background-color: rgba(0, 0, 0, 0.85);
+            color: white;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .drag-tooltip.show {
+            opacity: 1;
+        }
+
+        /* Selection Display at Bottom */
+        .selection-display {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 997;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            max-width: 80%;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .selection-display.show {
+            opacity: 1;
+        }
+
+        .chip.chip-animated {
+            position: relative;
+            animation: chipPulse 1.8s ease-in-out infinite;
+            box-shadow: 
+                0 0 0 3px rgba(5, 109, 206, 0.8),
+                0 0 0 6px rgba(5, 109, 206, 0.6);
+        }
+
+        .chip.chip-animated::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 2px solid #056dce;
+            border-radius: var(--border-radius);
+            pointer-events: none;
+            animation: chipRing 1.8s ease-in-out infinite;
+        }
+
+        .chip.chip-animated::after {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border: 2px solid #056dce;
+            border-radius: var(--border-radius);
+            pointer-events: none;
+            animation: chipRing 1.8s ease-in-out infinite 0.3s;
+        }
+
+        @media (prefers-contrast: more) {
+            .chip, .separator-button {
+                border-width: 2px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <button class="logo-btn" id="logoBtn" title="File Namer">
+                    <svg class="logo" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Define the modern gradient -->
+                        <defs>
+                            <linearGradient id="logo_grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#4F46E5" />
+                                <stop offset="100%" stop-color="#9333EA" />
+                            </linearGradient>
+                            <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+                                <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                                <feOffset dx="0" dy="4" result="offsetblur"/>
+                                <feComponentTransfer>
+                                    <feFuncA type="linear" slope="0.2"/>
+                                </feComponentTransfer>
+                                <feMerge>
+                                    <feMergeNode/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <!-- File Body -->
+                        <path d="M50 30C50 24.4772 54.4772 20 60 20H115L150 55V170C150 175.523 145.523 180 140 180H60C54.4772 180 50 175.523 50 170V30Z" fill="url(#logo_grad)" filter="url(#shadow)"/>
+                        <!-- Folded Corner -->
+                        <path d="M115 20V40C115 48.2843 121.716 55 130 55H150L115 20Z" fill="white" fill-opacity="0.3"/>
+                        <!-- Core Spark Icon -->
+                        <path d="M100 85C100 85 102 98 105 100C108 102 121 100 121 100C121 100 108 103 105 106C102 109 100 122 100 122C100 122 98 109 95 106C92 103 79 100 79 100C79 100 92 97 95 94C98 91 100 85 100 85Z" fill="white" />
+                        <!-- Tiny Secondary Sparks for Motion -->
+                        <circle cx="125" cy="85" r="2.5" fill="white" fill-opacity="0.8" />
+                        <circle cx="80" cy="130" r="3" fill="white" fill-opacity="0.6" />
+                    </svg>
+                </button>
+                <div>
+                    <h1>Renamie</h1>
+                    <p>The intelligent architect for your file naming patterns.</p>
+                </div>
+            </div>
+            <div class="header-controls">
+                <button class="header-btn outline-btn" id="exportSettingsBtn" style="display: none;" title="Export settings as JSON">⇓ Export</button>
+                <button class="header-btn outline-btn" id="importSettingsBtn" style="display: none;" title="Import settings from JSON">⇑ Import</button>
+                <input type="file" id="settingsFileInput" accept=".json" style="display: none;">
+                <button class="edit-toggle-btn" id="editToggleBtn">✎ Edit</button>
+            </div>
+        </div>
+
+        <!-- About Popup -->
+        <div class="about-popup" id="aboutPopup">
+            <div class="about-popup-content">
+                <button class="about-popup-close" id="closePopup">&times;</button>
+                <svg class="about-logo" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Define the modern gradient -->
+                    <defs>
+                        <linearGradient id="logo_grad_about" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#4F46E5" />
+                            <stop offset="100%" stop-color="#9333EA" />
+                        </linearGradient>
+                        <filter id="shadow_about" x="-10%" y="-10%" width="120%" height="120%">
+                            <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                            <feOffset dx="0" dy="4" result="offsetblur"/>
+                            <feComponentTransfer>
+                                <feFuncA type="linear" slope="0.2"/>
+                            </feComponentTransfer>
+                            <feMerge>
+                                <feMergeNode/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+                    <!-- File Body -->
+                    <path d="M50 30C50 24.4772 54.4772 20 60 20H115L150 55V170C150 175.523 145.523 180 140 180H60C54.4772 180 50 175.523 50 170V30Z" fill="url(#logo_grad_about)" filter="url(#shadow_about)"/>
+                    <!-- Folded Corner -->
+                    <path d="M115 20V40C115 48.2843 121.716 55 130 55H150L115 20Z" fill="white" fill-opacity="0.3"/>
+                    <!-- Core Spark Icon -->
+                    <path d="M100 85C100 85 102 98 105 100C108 102 121 100 121 100C121 100 108 103 105 106C102 109 100 122 100 122C100 122 98 109 95 106C92 103 79 100 79 100C79 100 92 97 95 94C98 91 100 85 100 85Z" fill="white" />
+                    <!-- Tiny Secondary Sparks for Motion -->
+                    <circle cx="125" cy="85" r="2.5" fill="white" fill-opacity="0.8" />
+                    <circle cx="80" cy="130" r="3" fill="white" fill-opacity="0.6" />
+                </svg>
+                <h2>Renamie</h2>
+                <p class="about-subtitle">The intelligent architect for your file naming patterns.</p>
+                <div class="about-divider"></div>
+                <p class="about-credit">Powered by <strong>Catalyst</strong></p>
+                <p class="about-credit">Ideated by <strong>Banuchandar K</strong></p>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs-container">
+            <button class="tab-button active" data-tab="builder">Builder</button>
+            <button class="tab-button" data-tab="renamer">File Renamer</button>
+            <button class="tab-button" data-tab="compare">Compare Names</button>
+        </div>
+
+        <!-- Tab: Builder -->
+        <div class="tab-content active" id="builder-tab">
+
+        <!-- Settings -->
+        <div class="settings-bar">
+            <label>Separator:</label>
+            <div class="separator-toggle">
+                <button class="separator-button active" data-separator="_">_</button>
+                <button class="separator-button" data-separator="-">-</button>
+                <button class="separator-button" data-separator=".">.</button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrapper">
+            <div class="table">
+                <!-- Header Row -->
+                <div class="table-header">
+                    <div class="table-row">
+                        <div class="table-cell header-cell">
+                            <div class="header-cell-content">
+                                <span>Brand</span>
+                                <button class="edit-btn" data-column="brand" title="Edit options">⚙</button>
+                            </div>
+                        </div>
+                        <div class="table-cell header-cell">
+                            <div class="header-cell-content">
+                                <span>Region</span>
+                                <button class="edit-btn" data-column="region" title="Edit options">⚙</button>
+                            </div>
+                        </div>
+                        <div class="table-cell header-cell">
+                            <div class="header-cell-content">
+                                <span>Year</span>
+                                <button class="edit-btn" data-column="year" title="Edit options">⚙</button>
+                            </div>
+                        </div>
+                        <div class="table-cell header-cell">
+                            <div class="header-cell-content">
+                                <span>Campaign</span>
+                                <button class="edit-btn" data-column="campaign" title="Edit options">⚙</button>
+                            </div>
+                        </div>
+                        <div class="table-cell header-cell">
+                            <div class="header-cell-content">
+                                <span>Medium</span>
+                                <button class="edit-btn" data-column="medium" title="Edit options">⚙</button>
+                            </div>
+                        </div>
+                        <div class="table-cell header-cell">
+                            <div class="header-cell-content">
+                                <span>Creative</span>
+                                <button class="edit-btn" data-column="creative" title="Edit options">⚙</button>
+                            </div>
+                        </div>
+                        <div class="table-cell header-cell">
+                            <div class="header-cell-content">
+                                <span>Resolution</span>
+                                <button class="edit-btn" data-column="resolution" title="Edit options">⚙</button>
+                            </div>
+                        </div>
+                        <div class="table-cell header-cell">
+                            <div class="header-cell-content">
+                                <span>Additional</span>
+                                <button class="edit-btn" data-column="Additional" title="Edit options">⚙</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Row -->
+                <div class="table-row">
+                    <div class="table-cell">
+                        <div class="chips-cell" id="brandChips"></div>
+                    </div>
+                    <div class="table-cell">
+                        <div class="chips-cell" id="regionChips"></div>
+                    </div>
+                    <div class="table-cell">
+                        <div class="chips-cell" id="yearChips"></div>
+                    </div>
+                    <div class="table-cell">
+                        <div class="chips-cell" id="campaignChips"></div>
+                    </div>
+                    <div class="table-cell">
+                        <div class="chips-cell" id="mediumChips"></div>
+                    </div>
+                    <div class="table-cell">
+                        <div class="chips-cell" id="creativeChips"></div>
+                    </div>
+                    <div class="table-cell">
+                        <div class="chips-cell" id="resolutionChips"></div>
+                    </div>
+                    <div class="table-cell">
+                        <div class="chips-cell" id="AdditionalChips"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+            <!-- Preview & Add Name Section -->
+            <div class="preview-add-section">
+                <div class="preview-section">
+                    <label class="preview-label">Preview</label>
+                    <div class="preview-box">
+                        <span class="preview-text empty" id="previewText">Select options...</span>
+                        <button class="copy-button" id="copyButton" title="Copy filename" disabled>📋</button>
+                    </div>
+                </div>
+                <button class="add-name-button" id="addNameBtn">+ Add Name</button>
+            </div>
+
+            <!-- Generated Names Section -->
+            <div class="generated-names-section">
+                <h3>Generated Names</h3>
+
+                <!-- Names List Table -->
+                <div class="names-table-wrapper">
+                    <div class="names-table" id="namesTable">
+                        <div class="names-row header">
+                            <div class="names-col names-col-idx">#</div>
+                            <div class="names-col">Name</div>
+                            <div class="names-col names-col-action">Action</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export Buttons (shown when names exist) -->
+                <div class="export-section" id="exportSection" style="display: none;">
+                    <button class="action-btn action-btn-primary" id="exportTxtBtn">📄 Export TXT</button>
+                    <button class="action-btn action-btn-primary" id="exportXlsBtn">📊 Export XLS</button>
+                    <button class="action-btn action-btn-secondary" id="clearAllNamesBtn">Clear All</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: File Renamer -->
+        <div class="tab-content" id="renamer-tab">
+            <!-- Modifier Section (above upload) -->
+            <div class="modifier-section" id="modifierSection" style="display: none;">
+                <div class="settings-bar">
+                    <label>Apply Modifier to All Files:</label>
+                    <div class="modifier-inputs">
+                        <input type="text" id="modifierPrefix" placeholder="Prefix" maxlength="30">
+                        <input type="text" id="modifierSuffix" placeholder="Suffix" maxlength="30">
+                        <button class="action-btn action-btn-secondary" id="applyModifierBtn">Apply</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Zone -->
+            <div class="upload-zone" id="uploadZone">
+                <div class="upload-icon">📦</div>
+                <div class="upload-text">Drop ZIP file here or click to browse</div>
+                <div class="upload-subtext">Supports .zip files with images</div>
+                <input type="file" id="fileInput" accept=".zip" />
+            </div>
+
+            <!-- Files List -->
+            <div class="files-section" id="filesSection" style="display: none;">
+                <span class="files-label">Files to Rename</span>
+                <div id="filesList"></div>
+
+                <!-- Action Bar -->
+                <div class="action-bar">
+                    <button class="action-btn action-btn-primary" id="downloadBtn">⬇ Download Renamed ZIP</button>
+                    <button class="action-btn action-btn-secondary" id="clearBtn">Clear</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Compare Names -->
+        <div class="tab-content" id="compare-tab">
+            <div class="compare-section" id="compareSection" style="display: none;">
+                <div class="compare-header">
+                    <h3>File Name Comparison</h3>
+                    <p>Based on current selections</p>
+                </div>
+                <div class="compare-table-wrapper">
+                    <div class="compare-table" id="compareTable">
+                    </div>
+                </div>
+            </div>
+            <div class="compare-empty" id="compareEmpty" style="display: flex;">
+                <div class="compare-empty-content">
+                    <p style="font-size: 14px; color: var(--color-text-secondary); text-align: center;">
+                        Upload a ZIP file in the <strong>File Renamer</strong> tab and select naming options to see the comparison.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="edit-overlay" id="editOverlay">
+        <div class="edit-modal">
+            <div class="modal-header" id="modalTitle">Edit</div>
+            <div class="modal-input-group">
+                <input type="text" id="modalInput" placeholder="Enter new option">
+                <button class="modal-add-btn" id="modalAddBtn">Add</button>
+            </div>
+            <div class="modal-items" id="modalItems"></div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-cancel" id="modalCancelBtn">Cancel</button>
+                <button class="modal-btn modal-btn-save" id="modalSaveBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-notification" id="toastNotification"></div>
+
+    <!-- Drag Selection Elements -->
+    <svg class="drag-selection-line" id="dragLine" style="display: none;"></svg>
+    <div class="drag-tooltip" id="dragTooltip">Hold & drag to select</div>
+    <div class="selection-display" id="selectionDisplay"></div>
+
+    <script>
+        const CONFIG = {
+            separatorDefault: '_',
+            fileExtension: '.jpg',
+            columns: {
+                brand: { title: 'Brand', options: ['Nike', 'Adidas', 'Puma', 'Reebok', 'Asics', 'Brooks', 'Salomon', 'New Balance', 'Saucony', 'Skechers', 'Mizuno'] },
+                region: { title: 'Region', options: ['APAC', 'EMEA', 'LATAM', 'NA', 'US', 'EU', 'ASIA', 'IND'] },
+                year: { title: 'Year', options: ['2024', '2025', '2026'] },
+                campaign: { title: 'Campaign', options: ['SummerSale', 'WinterPromo', 'Q1Campaign', 'Q2Campaign', 'BlackFriday', 'NewYear'] },
+                medium: { title: 'Medium', options: ['Social', 'Email', 'Banner', 'Display', 'Video', 'Print', 'Web', 'Mobile', 'OOH'] },
+                creative: { title: 'Creative', options: ['Hero', 'Tile', 'V1', 'V2', 'MainAsset', 'Secondary', 'Carousel'] },
+                resolution: { title: 'Resolution', options: ['1080x1080', '1080x1920', '1920x1080', '300x250', '728x90', '1200x800', '2560x1440', '4K', 'Dynamic'] },
+                Additional: { title: 'Additional', options: ['30s', '2x', 'RGB', 'BW'] }
+            }
+        };
+
+        const state = {
+            separator: CONFIG.separatorDefault,
+            selections: {},
+            editingColumn: null,
+            tempData: {},
+            generatedNames: [],
+            reorderMode: false,
+            columnOrder: Object.keys(CONFIG.columns),
+            titleClickCount: 0
+        };
+
+        Object.keys(CONFIG.columns).forEach(col => {
+            state.selections[col] = null;
+        });
+
+        const elements = {
+            editToggleBtn: document.getElementById('editToggleBtn'),
+            editOverlay: document.getElementById('editOverlay'),
+            modalTitle: document.getElementById('modalTitle'),
+            modalInput: document.getElementById('modalInput'),
+            modalAddBtn: document.getElementById('modalAddBtn'),
+            modalItems: document.getElementById('modalItems'),
+            modalCancelBtn: document.getElementById('modalCancelBtn'),
+            modalSaveBtn: document.getElementById('modalSaveBtn'),
+            previewText: document.getElementById('previewText'),
+            copyButton: document.getElementById('copyButton'),
+            toastNotification: document.getElementById('toastNotification'),
+            separatorButtons: document.querySelectorAll('.separator-button'),
+            editButtons: document.querySelectorAll('.edit-btn')
+        };
+
+        // ===== DRAG SELECT FEATURE =====
+        const dragState = {
+            isDragging: false,
+            startX: 0,
+            startY: 0,
+            currentX: 0,
+            currentY: 0,
+            selectedChips: new Map(),
+            selectionSequence: [],
+            startChip: null
+        };
+
+        const dragElements = {
+            svg: document.getElementById('dragLine'),
+            tooltip: document.getElementById('dragTooltip'),
+            selectionDisplay: document.getElementById('selectionDisplay')
+        };
+
+        function setupDragSelection() {
+            document.addEventListener('mousedown', (e) => {
+                const chip = e.target.closest('.chip');
+                if (!chip || state.reorderMode) return;
+
+                dragState.isDragging = true;
+                dragState.startChip = chip;
+                dragState.startX = e.clientX;
+                dragState.startY = e.clientY;
+                dragState.selectedChips.clear();
+                dragState.selectionSequence = [];
+                dragState.currentX = e.clientX;
+                dragState.currentY = e.clientY;
+
+                // Show tooltip
+                dragElements.tooltip.classList.add('show');
+                updateTooltipPosition(e.clientX, e.clientY);
+
+                // Clear previous hover effects
+                document.querySelectorAll('.chip.drag-hover, .chip.drag-selected').forEach(c => {
+                    c.classList.remove('drag-hover', 'drag-selected');
+                });
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                dragElements.tooltip.style.left = (e.clientX + 15) + 'px';
+                dragElements.tooltip.style.top = (e.clientY - 25) + 'px';
+
+                if (!dragState.isDragging) return;
+
+                dragState.currentX = e.clientX;
+                dragState.currentY = e.clientY;
+
+                // Draw selection line
+                drawSelectionLine();
+
+                // Get current chip under cursor
+                const elements = document.elementsFromPoint(e.clientX, e.clientY);
+                let currentChip = null;
+                let currentColumn = null;
+
+                for (const el of elements) {
+                    const chip = el.closest('.chip');
+                    if (chip) {
+                        const column = getColumnFromChip(chip);
+                        if (column) {
+                            currentChip = chip;
+                            currentColumn = column;
+                            break;
+                        }
+                    }
+                }
+
+                // Handle selection/unselection with ASCENDING sequence only
+                if (currentChip && currentColumn) {
+                    const selectedChip = dragState.selectedChips.get(currentColumn);
+                    const columnOrder = state.columnOrder;
+                    const currentColumnIndex = columnOrder.indexOf(currentColumn);
+                    const lastSelectedIndex = dragState.selectionSequence.length > 0 
+                        ? columnOrder.indexOf(dragState.selectionSequence[dragState.selectionSequence.length - 1])
+                        : -1;
+                    
+                    if (!selectedChip) {
+                        // No selection in this column
+                        // Only allow if it's in ascending order (after last selected)
+                        if (currentColumnIndex > lastSelectedIndex) {
+                            currentChip.classList.add('drag-hover');
+                            animateSelectedChip(currentChip);
+                            dragState.selectedChips.set(currentColumn, currentChip);
+                            dragState.selectionSequence.push(currentColumn);
+                            state.selections[currentColumn] = currentChip.textContent.trim();
+                        }
+                    } else if (dragState.selectionSequence.includes(currentColumn)) {
+                        // Already selected and in sequence - keep it highlighted
+                        selectedChip.classList.add('drag-hover');
+                        animateSelectedChip(selectedChip);
+                    }
+                    // Cannot select backwards or change earlier selections
+                }
+
+                // Clear hover from chips not in current selection
+                document.querySelectorAll('.chip.drag-hover').forEach(c => {
+                    const column = getColumnFromChip(c);
+                    if (!dragState.selectedChips.has(column)) {
+                        c.classList.remove('drag-hover');
+                        removeChipAnimation(c);
+                    }
+                });
+
+                // Show real-time selection display
+                updateSelectionDisplayRealTime();
+            });
+
+            document.addEventListener('mouseup', (e) => {
+                if (!dragState.isDragging) return;
+
+                dragState.isDragging = false;
+                dragElements.tooltip.classList.remove('show');
+
+                // Apply selections
+                dragState.selectedChips.forEach((chip, column) => {
+                    const newValue = chip.textContent.trim();
+                    const oldValue = state.selections[column];
+                    
+                    state.selections[column] = newValue;
+                    chip.classList.add('drag-selected');
+                    
+                    // Re-render chips for this column
+                    renderChips(column);
+                });
+
+                // Clear SVG line
+                clearSelectionLine();
+
+                // Update preview and show selection display
+                updatePreview();
+                showSelectionDisplay();
+
+                // Clear maps
+                dragState.selectedChips.clear();
+                dragState.startChip = null;
+            });
+
+            // Add CSS animations dynamically
+            if (!document.querySelector('style[data-drag-animations]')) {
+                const style = document.createElement('style');
+                style.setAttribute('data-drag-animations', 'true');
+                style.textContent = `
+                    @keyframes marchingAnts {
+                        0% {
+                            stroke-dashoffset: 0;
+                        }
+                        50% {
+                            stroke-dashoffset: -7px;
+                        }
+                        100% {
+                            stroke-dashoffset: 0;
+                        }
+                    }
+
+                    @keyframes chipRing {
+                        0% {
+                            opacity: 0.8;
+                            border-color: #056dce;
+                        }
+                        50% {
+                            opacity: 0.5;
+                        }
+                        100% {
+                            opacity: 0.4;
+                            border-color: #056dce;
+                        }
+                    }
+
+                    @keyframes chipPulse {
+                        0%, 100% {
+                            transform: scale(1);
+                        }
+                        50% {
+                            transform: scale(1.05);
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+
+        function getColumnFromChip(chip) {
+            const cellId = chip.parentElement?.id;
+            if (!cellId) return null;
+            
+            // Extract column name from id like "brandChips" -> "brand"
+            const match = cellId.match(/^(\w+)Chips$/);
+            return match ? match[1] : null;
+        }
+
+        function drawSelectionLine() {
+            const svg = dragElements.svg;
+            
+            svg.style.display = 'block';
+            svg.style.left = '0px';
+            svg.style.top = '0px';
+            svg.style.width = window.innerWidth + 'px';
+            svg.style.height = window.innerHeight + 'px';
+
+            // Clear previous lines
+            svg.innerHTML = '';
+
+            // Get all chips under path
+            const chipElements = Array.from(dragState.selectedChips.values());
+            
+            if (chipElements.length === 0) {
+                // Just draw line from start to current
+                drawLine(svg, dragState.startX, dragState.startY, dragState.currentX, dragState.currentY);
+            } else {
+                // Draw connecting lines through selected chips
+                let prevX = dragState.startX;
+                let prevY = dragState.startY;
+
+                chipElements.forEach((chip, idx) => {
+                    const rect = chip.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+
+                    drawLine(svg, prevX, prevY, centerX, centerY);
+
+                    prevX = centerX;
+                    prevY = centerY;
+                });
+
+                // Draw final line to cursor
+                drawLine(svg, prevX, prevY, dragState.currentX, dragState.currentY);
+            }
+        }
+
+        function drawLine(svg, x1, y1, x2, y2) {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', x1);
+            line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2);
+            line.setAttribute('y2', y2);
+            line.setAttribute('class', 'drag-selection-line');
+            svg.appendChild(line);
+
+            // Calculate line length for marching ants animation
+            const length = Math.hypot(x2 - x1, y2 - y1);
+            // Small dash (4px) + small gap (3px) = 7px total for marching ants effect
+            line.style.strokeDasharray = '4, 3';
+            line.style.strokeDashoffset = 0;
+            
+            // Marching ants animation (Photoshop style)
+            line.style.animation = `marchingAnts 0.6s ease-in-out infinite`;
+        }
+
+        function animateSelectedChip(chip) {
+            // Add animation class to the chip itself
+            chip.classList.add('chip-animated');
+        }
+
+        function removeChipAnimation(chip) {
+            chip.classList.remove('chip-animated');
+        }
+
+        function clearSelectionLine() {
+            dragElements.svg.style.display = 'none';
+            dragElements.svg.innerHTML = '';
+        }
+
+        function updateTooltipPosition(x, y) {
+            dragElements.tooltip.style.left = (x + 15) + 'px';
+            dragElements.tooltip.style.top = (y - 25) + 'px';
+        }
+
+        function updateSelectionDisplayRealTime() {
+            const filename = generateFilename();
+            if (filename && filename !== 'Select options...') {
+                dragElements.selectionDisplay.textContent = filename;
+                dragElements.selectionDisplay.classList.add('show');
+            }
+        }
+
+        function showSelectionDisplay() {
+            const filename = generateFilename();
+            if (filename && filename !== 'Select options...') {
+                dragElements.selectionDisplay.textContent = filename;
+                dragElements.selectionDisplay.classList.add('show');
+                setTimeout(() => {
+                    dragElements.selectionDisplay.classList.remove('show');
+                }, 2500);
+            }
+        }
+
+        function init() {
+            renderAllChips();
+            setupEventListeners();
+            setupDragSelection();
+            updatePreview();
+        }
+
+        function setupEventListeners() {
+            elements.editToggleBtn.addEventListener('click', toggleEditMode);
+
+            // Logo click counter for about popup
+            let logoClickCount = 0;
+            let logoClickTimeout;
+            const logoBtn = document.getElementById('logoBtn');
+            const aboutPopup = document.getElementById('aboutPopup');
+            const closePopup = document.getElementById('closePopup');
+
+            logoBtn.addEventListener('click', () => {
+                logoClickCount++;
+                clearTimeout(logoClickTimeout);
+                
+                if (logoClickCount === 4) {
+                    aboutPopup.classList.add('show');
+                    logoClickCount = 0;
+                }
+                
+                logoClickTimeout = setTimeout(() => {
+                    logoClickCount = 0;
+                }, 1000);
+            });
+
+            closePopup.addEventListener('click', () => {
+                aboutPopup.classList.remove('show');
+            });
+
+            aboutPopup.addEventListener('click', (e) => {
+                if (e.target === aboutPopup) {
+                    aboutPopup.classList.remove('show');
+                }
+            });
+
+            // Title click counter for revealing edit button
+            const titleElement = document.querySelector('.header h1');
+            titleElement.addEventListener('click', () => {
+                state.titleClickCount++;
+                if (state.titleClickCount === 8) {
+                    elements.editToggleBtn.classList.add('visible');
+                    showToast('Edit button revealed! 🎉');
+                    state.titleClickCount = 0;
+                }
+            });
+
+            elements.separatorButtons.forEach(btn => {
+                btn.addEventListener('click', e => {
+                    elements.separatorButtons.forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    state.separator = e.target.dataset.separator;
+                    updatePreview();
+                });
+            });
+
+            elements.editButtons.forEach(btn => {
+                btn.addEventListener('click', e => {
+                    openEditModal(e.target.dataset.column);
+                });
+            });
+
+            elements.modalAddBtn.addEventListener('click', addModalItem);
+            elements.modalInput.addEventListener('keypress', e => {
+                if (e.key === 'Enter') addModalItem();
+            });
+            elements.modalCancelBtn.addEventListener('click', closeEditModal);
+            elements.modalSaveBtn.addEventListener('click', saveEditModal);
+            elements.copyButton.addEventListener('click', copyToClipboard);
+            elements.editOverlay.addEventListener('click', e => {
+                if (e.target === elements.editOverlay) closeEditModal();
+            });
+
+            // Generated Names listeners
+            document.getElementById('addNameBtn').addEventListener('click', addGeneratedName);
+            document.getElementById('exportTxtBtn').addEventListener('click', exportToTxt);
+            document.getElementById('exportXlsBtn').addEventListener('click', exportToXls);
+            document.getElementById('clearAllNamesBtn').addEventListener('click', clearAllNames);
+
+            // Import/Export Settings listeners
+            document.getElementById('exportSettingsBtn').addEventListener('click', exportSettings);
+            document.getElementById('importSettingsBtn').addEventListener('click', () => {
+                document.getElementById('settingsFileInput').click();
+            });
+            document.getElementById('settingsFileInput').addEventListener('change', importSettings);
+        }
+
+        function renderChips(column) {
+            const container = document.getElementById(`${column}Chips`);
+            container.innerHTML = '';
+
+            CONFIG.columns[column].options.forEach(option => {
+                const chip = document.createElement('button');
+                chip.className = 'chip';
+                chip.textContent = option;
+                if (state.selections[column] === option) chip.classList.add('active');
+
+                chip.addEventListener('click', () => {
+                    state.selections[column] = state.selections[column] === option ? null : option;
+                    renderChips(column);
+                    updatePreview();
+                    updateCompareTab();
+                });
+
+                container.appendChild(chip);
+            });
+        }
+
+        function renderAllChips() {
+            state.columnOrder.forEach(col => renderChips(col));
+        }
+
+        function openEditModal(column) {
+            state.editingColumn = column;
+            state.tempData = [...CONFIG.columns[column].options];
+            elements.modalTitle.textContent = `Edit ${CONFIG.columns[column].title}`;
+            elements.modalInput.value = '';
+            elements.modalInput.focus();
+            renderModalItems();
+            elements.editOverlay.classList.add('active');
+        }
+
+        function renderModalItems() {
+            elements.modalItems.innerHTML = '';
+            state.tempData.forEach((item, idx) => {
+                const chip = document.createElement('div');
+                chip.className = 'modal-chip';
+                chip.innerHTML = `${item}<button class="modal-chip-remove" data-index="${idx}">✕</button>`;
+                chip.querySelector('.modal-chip-remove').addEventListener('click', () => {
+                    state.tempData.splice(idx, 1);
+                    renderModalItems();
+                });
+                elements.modalItems.appendChild(chip);
+            });
+        }
+
+        function addModalItem() {
+            const value = elements.modalInput.value.trim();
+            if (!value || state.tempData.includes(value)) {
+                showToast(value ? 'Already exists' : 'Enter text');
+                return;
+            }
+            state.tempData.push(value);
+            elements.modalInput.value = '';
+            elements.modalInput.focus();
+            renderModalItems();
+        }
+
+        function closeEditModal() {
+            elements.editOverlay.classList.remove('active');
+        }
+
+        function saveEditModal() {
+            if (!state.tempData.length) {
+                showToast('Need at least one option');
+                return;
+            }
+            CONFIG.columns[state.editingColumn].options = state.tempData;
+            state.selections[state.editingColumn] = null;
+            renderChips(state.editingColumn);
+            updatePreview();
+            closeEditModal();
+            showToast('Saved');
+        }
+
+        function toggleEditMode() {
+            state.reorderMode = !state.reorderMode;
+            elements.editToggleBtn.classList.toggle('reorder-mode', state.reorderMode);
+            
+            const table = document.querySelector('.table');
+            table.classList.toggle('reorder-mode', state.reorderMode);
+
+            const headerControls = document.querySelector('.header-controls');
+            const exportBtn = document.getElementById('exportSettingsBtn');
+            const importBtn = document.getElementById('importSettingsBtn');
+
+            if (state.reorderMode) {
+                renderReorderMode();
+                exportBtn.style.display = 'inline-block';
+                importBtn.style.display = 'inline-block';
+                showToast('Column reorder mode ON - Use arrow buttons to reorder');
+            } else {
+                renderNormalMode();
+                exportBtn.style.display = 'none';
+                importBtn.style.display = 'none';
+                showToast('Column reorder mode OFF');
+            }
+        }
+
+        function renderNormalMode() {
+            const tableHeader = document.querySelector('.table-header .table-row');
+            tableHeader.innerHTML = '';
+
+            state.columnOrder.forEach((colName) => {
+                const col = CONFIG.columns[colName];
+                const headerCell = document.createElement('div');
+                headerCell.className = 'table-cell header-cell';
+                
+                headerCell.innerHTML = `
+                    <div class="header-cell-content">
+                        <span>${col.title}</span>
+                        <button class="edit-btn" data-column="${colName}" title="Edit options">⚙</button>
+                    </div>
+                `;
+
+                headerCell.querySelector('.edit-btn').addEventListener('click', (e) => {
+                    openEditModal(e.target.dataset.column);
+                });
+
+                tableHeader.appendChild(headerCell);
+            });
+
+            renderAllChips();
+        }
+
+        function renderReorderMode() {
+            const tableHeader = document.querySelector('.table-header .table-row');
+            const dataRow = document.querySelector('.table-row:not(.table-header .table-row)');
+            
+            tableHeader.innerHTML = '';
+            dataRow.innerHTML = '';
+
+            state.columnOrder.forEach((colName, idx) => {
+                const col = CONFIG.columns[colName];
+                const headerCell = document.createElement('div');
+                headerCell.className = 'table-cell header-cell';
+                
+                const isFirst = idx === 0;
+                const isLast = idx === state.columnOrder.length - 1;
+
+                headerCell.innerHTML = `
+                    <div class="header-cell-content">
+                        <span>${col.title}</span>
+                        <div class="reorder-controls">
+                            <button class="reorder-btn" ${isFirst ? 'disabled' : ''} data-direction="up" data-index="${idx}">↑</button>
+                            <button class="reorder-btn" ${isLast ? 'disabled' : ''} data-direction="down" data-index="${idx}">↓</button>
+                        </div>
+                    </div>
+                `;
+
+                headerCell.querySelectorAll('.reorder-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const direction = e.target.dataset.direction;
+                        const index = parseInt(e.target.dataset.index);
+                        
+                        if (direction === 'up' && index > 0) {
+                            [state.columnOrder[index], state.columnOrder[index - 1]] = 
+                            [state.columnOrder[index - 1], state.columnOrder[index]];
+                        } else if (direction === 'down' && index < state.columnOrder.length - 1) {
+                            [state.columnOrder[index], state.columnOrder[index + 1]] = 
+                            [state.columnOrder[index + 1], state.columnOrder[index]];
+                        }
+                        
+                        renderReorderMode();
+                    });
+                });
+
+                tableHeader.appendChild(headerCell);
+
+                // Add corresponding data cell
+                const dataCell = document.createElement('div');
+                dataCell.className = 'table-cell';
+                dataCell.innerHTML = `<div class="chips-cell" id="${colName}Chips"></div>`;
+                dataRow.appendChild(dataCell);
+
+                // Render chips for this column
+                renderChips(colName);
+            });
+        }
+
+        // Generated Names Functions
+        function addGeneratedName() {
+            const filename = generateFilename();
+            if (!filename) {
+                showToast('Please select options first');
+                return;
+            }
+
+            // Remove extension for storage
+            const nameWithoutExt = filename.replace(CONFIG.fileExtension, '');
+
+            if (!state.generatedNames.includes(nameWithoutExt)) {
+                state.generatedNames.push(nameWithoutExt);
+                renderGeneratedNamesTable();
+                showToast('Name added!');
+            } else {
+                showToast('Name already exists');
+            }
+        }
+
+        function renderGeneratedNamesTable() {
+            const namesTable = document.getElementById('namesTable');
+            const exportSection = document.getElementById('exportSection');
+
+            // Clear existing rows except header
+            const rows = namesTable.querySelectorAll('.names-row:not(.header)');
+            rows.forEach(row => row.remove());
+
+            // Add data rows
+            state.generatedNames.forEach((name, idx) => {
+                const row = document.createElement('div');
+                row.className = 'names-row';
+                row.innerHTML = `
+                    <div class="names-col names-col-idx">${idx + 1}</div>
+                    <div class="names-col"><span class="name-item">${name}</span></div>
+                    <div class="names-col names-col-action">
+                        <button class="names-row-delete-btn" data-index="${idx}">Delete</button>
+                    </div>
+                `;
+
+                row.querySelector('.names-row-delete-btn').addEventListener('click', () => {
+                    state.generatedNames.splice(idx, 1);
+                    renderGeneratedNamesTable();
+                    showToast('Name removed');
+                });
+
+                namesTable.appendChild(row);
+            });
+
+            // Show/hide export section
+            if (state.generatedNames.length > 0) {
+                exportSection.style.display = 'flex';
+            } else {
+                exportSection.style.display = 'none';
+            }
+        }
+
+        function exportToTxt() {
+            if (state.generatedNames.length === 0) {
+                showToast('No names to export');
+                return;
+            }
+
+            const txtContent = state.generatedNames.join('\n');
+            const blob = new Blob([txtContent], { type: 'text/plain' });
+            downloadFile(blob, 'generated_names.txt');
+            showToast('TXT exported!');
+        }
+
+        function exportToXls() {
+            if (state.generatedNames.length === 0) {
+                showToast('No names to export');
+                return;
+            }
+
+            // Create CSV format (compatible with Excel)
+            let csvContent = 'Name\n';
+            state.generatedNames.forEach(name => {
+                csvContent += `"${name}"\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            downloadFile(blob, 'generated_names.csv');
+            showToast('XLS exported!');
+        }
+
+        function downloadFile(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function clearAllNames() {
+            if (state.generatedNames.length === 0) {
+                showToast('No names to clear');
+                return;
+            }
+
+            if (confirm('Are you sure you want to clear all names?')) {
+                state.generatedNames = [];
+                renderGeneratedNamesTable();
+                showToast('All names cleared');
+            }
+        }
+
+        // Export Settings as JSON
+        function exportSettings() {
+            const settingsData = {
+                version: '1.0',
+                exportDate: new Date().toISOString(),
+                columnOrder: state.columnOrder,
+                columns: CONFIG.columns,
+                separator: state.separator,
+                fileExtension: CONFIG.fileExtension
+            };
+
+            const jsonString = JSON.stringify(settingsData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            downloadFile(blob, 'file-namer-settings.json');
+            showToast('Settings exported!');
+        }
+
+        // Import Settings from JSON
+        function importSettings(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const settingsData = JSON.parse(e.target.result);
+
+                    // Validate imported data
+                    if (!settingsData.columnOrder || !settingsData.columns) {
+                        showToast('Invalid settings file');
+                        return;
+                    }
+
+                    // Update CONFIG and state with imported data
+                    CONFIG.columns = settingsData.columns;
+                    state.columnOrder = settingsData.columnOrder;
+                    state.separator = settingsData.separator || CONFIG.separatorDefault;
+                    CONFIG.fileExtension = settingsData.fileExtension || '.jpg';
+
+                    // Update separator buttons
+                    elements.separatorButtons.forEach(btn => {
+                        btn.classList.remove('active');
+                        if (btn.dataset.separator === state.separator) {
+                            btn.classList.add('active');
+                        }
+                    });
+
+                    // Re-render the table
+                    renderReorderMode();
+                    updatePreview();
+
+                    showToast('Settings imported successfully!');
+                } catch (error) {
+                    showToast('Error importing settings: ' + error.message);
+                    console.error(error);
+                }
+            };
+
+            reader.readAsText(file);
+
+            // Reset file input
+            document.getElementById('settingsFileInput').value = '';
+        }
+
+        function generateFilename() {
+            const parts = state.columnOrder
+                .map(col => state.selections[col])
+                .filter(p => p);
+            return parts.length ? parts.join(state.separator) + CONFIG.fileExtension : '';
+        }
+
+        function updatePreview() {
+            const filename = generateFilename();
+            if (filename) {
+                elements.previewText.textContent = filename;
+                elements.previewText.classList.remove('empty');
+                elements.copyButton.disabled = false;
+            } else {
+                elements.previewText.textContent = 'Select options...';
+                elements.previewText.classList.add('empty');
+                elements.copyButton.disabled = true;
+            }
+        }
+
+        async function copyToClipboard() {
+            const filename = generateFilename();
+            if (!filename) return;
+            try {
+                await navigator.clipboard.writeText(filename);
+                showToast('Copied!');
+                elements.copyButton.textContent = '✓';
+                setTimeout(() => { elements.copyButton.textContent = '📋'; }, 1500);
+            } catch {
+                showToast('Failed');
+            }
+        }
+
+        function showToast(message) {
+            elements.toastNotification.textContent = message;
+            elements.toastNotification.classList.add('show');
+            setTimeout(() => {
+                elements.toastNotification.classList.remove('show');
+            }, 2000);
+        }
+
+        // Update Compare Tab
+        function updateCompareTab() {
+            const compareSection = document.getElementById('compareSection');
+            const compareEmpty = document.getElementById('compareEmpty');
+            const compareTable = document.getElementById('compareTable');
+
+            if (!renamerState.files || renamerState.files.length === 0) {
+                compareSection.style.display = 'none';
+                compareEmpty.style.display = 'flex';
+                return;
+            }
+
+            compareSection.style.display = 'block';
+            compareEmpty.style.display = 'none';
+
+            compareTable.innerHTML = '';
+
+            // Header Row
+            const headerRow = document.createElement('div');
+            headerRow.className = 'compare-row header';
+            headerRow.innerHTML = `
+                <div>Original Name</div>
+                <div>Renamed</div>
+            `;
+            compareTable.appendChild(headerRow);
+
+            // Data Rows with character highlighting
+            renamerState.files.forEach(file => {
+                const row = document.createElement('div');
+                row.className = 'compare-row';
+
+                const original = file.originalName;
+                const renamed = file.newName || file.originalName;
+
+                // Build highlighted versions with character-level differences
+                let highlightedOriginal = '';
+                let highlightedRenamed = '';
+
+                if (file.comparison && file.comparison.charDiff && file.comparison.charDiff.length > 0) {
+                    // Create maps of changed positions
+                    const changedPositions = new Set(file.comparison.charDiff.map(d => d.pos));
+
+                    // Highlight original
+                    for (let i = 0; i < original.length; i++) {
+                        const char = original[i];
+                        if (changedPositions.has(i)) {
+                            highlightedOriginal += `<span class="char-changed-red">${char}</span>`;
+                        } else {
+                            highlightedOriginal += char;
+                        }
+                    }
+
+                    // Highlight renamed
+                    for (let i = 0; i < renamed.length; i++) {
+                        const char = renamed[i];
+                        if (changedPositions.has(i)) {
+                            highlightedRenamed += `<span class="char-changed-green">${char}</span>`;
+                        } else {
+                            highlightedRenamed += char;
+                        }
+                    }
+                } else {
+                    highlightedOriginal = original;
+                    highlightedRenamed = renamed;
+                }
+
+                row.innerHTML = `
+                    <div class="compare-column">
+                        <div class="compare-text">${highlightedOriginal}</div>
+                    </div>
+                    <div class="compare-column">
+                        <div class="compare-text">${highlightedRenamed}</div>
+                    </div>
+                `;
+                compareTable.appendChild(row);
+            });
+        }
+
+        init();
+
+
+        // ===== FILE RENAMER SECTION =====
+        // For the renamer tab
+        const renamerState = {
+            zipFile: null,
+            files: [],
+            renamedFiles: new Map()
+        };
+
+        const renamerElements = {
+            uploadZone: document.getElementById('uploadZone'),
+            fileInput: document.getElementById('fileInput'),
+            filesSection: document.getElementById('filesSection'),
+            filesList: document.getElementById('filesList'),
+            downloadBtn: document.getElementById('downloadBtn'),
+            clearBtn: document.getElementById('clearBtn'),
+            tabButtons: document.querySelectorAll('.tab-button'),
+            tabContents: document.querySelectorAll('.tab-content')
+        };
+
+        // Tab switching
+        renamerElements.tabButtons.forEach(btn => {
+            btn.addEventListener('click', e => {
+                const tabName = e.target.dataset.tab;
+                renamerElements.tabButtons.forEach(b => b.classList.remove('active'));
+                renamerElements.tabContents.forEach(c => c.classList.remove('active'));
+                e.target.classList.add('active');
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+            });
+        });
+
+        // Upload Zone
+        renamerElements.uploadZone.addEventListener('click', () => {
+            renamerElements.fileInput.click();
+        });
+
+        renamerElements.uploadZone.addEventListener('dragover', e => {
+            e.preventDefault();
+            renamerElements.uploadZone.classList.add('dragover');
+        });
+
+        renamerElements.uploadZone.addEventListener('dragleave', () => {
+            renamerElements.uploadZone.classList.remove('dragover');
+        });
+
+        renamerElements.uploadZone.addEventListener('drop', e => {
+            e.preventDefault();
+            renamerElements.uploadZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleZipUpload(files[0]);
+            }
+        });
+
+        renamerElements.fileInput.addEventListener('change', e => {
+            if (e.target.files.length > 0) {
+                handleZipUpload(e.target.files[0]);
+            }
+        });
+
+        // Handle ZIP upload
+        async function handleZipUpload(file) {
+            if (!file.name.endsWith('.zip')) {
+                showToast('Please upload a ZIP file');
+                return;
+            }
+
+            renamerState.zipFile = file;
+            showToast('Processing ZIP file...');
+
+            try {
+                const JSZip = window.JSZip || (await loadJSZip());
+                const zip = new JSZip();
+                const zipData = await zip.loadAsync(file);
+
+                renamerState.files = [];
+                for (const [path, fileObj] of Object.entries(zipData.files)) {
+                    if (!fileObj.dir && isImageFile(path) && !isSystemFile(path)) {
+                        renamerState.files.push({
+                            originalPath: path,
+                            originalName: path.split('/').pop(),
+                            newName: null,
+                            resolution: null,
+                            comparison: null,
+                            fileData: fileObj
+                        });
+                    }
+                }
+
+                if (renamerState.files.length === 0) {
+                    showToast('No image files found in ZIP');
+                    return;
+                }
+
+                renderFilesList();
+                renamerElements.filesSection.style.display = 'block';
+                renamerElements.uploadZone.style.display = 'none';
+                document.getElementById('modifierSection').style.display = 'block';
+                updateCompareTab();
+                showToast(`Found ${renamerState.files.length} image files`);
+            } catch (err) {
+                showToast('Error reading ZIP file');
+                console.error(err);
+            }
+        }
+
+        // Load JSZip library dynamically
+        async function loadJSZip() {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+                script.onload = () => resolve(window.JSZip);
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        // Check if file is image
+        function isImageFile(filename) {
+            const imageExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
+            return imageExts.some(ext => filename.toLowerCase().endsWith(ext));
+        }
+
+        // Filter out ._ files
+        function isSystemFile(filename) {
+            const name = filename.split('/').pop();
+            return name.startsWith('._') || name.startsWith('.DS_Store');
+        }
+
+        // Prevent duplicate extensions
+        function ensureUniqueExtension(baseName, originalName) {
+            const originalExt = originalName.substring(originalName.lastIndexOf('.')).toLowerCase();
+            if (baseName.toLowerCase().endsWith(originalExt)) {
+                return baseName;
+            }
+            return baseName + originalExt;
+        }
+
+        // Compare file names for similarity
+        function compareFilenames(original, renamed) {
+            const result = {
+                similar: false,
+                differences: [],
+                charDiff: []
+            };
+
+            if (original === renamed) {
+                result.similar = true;
+                return result;
+            }
+
+            // Character-level comparison
+            const maxLen = Math.max(original.length, renamed.length);
+            for (let i = 0; i < maxLen; i++) {
+                const origChar = original[i] || '';
+                const newChar = renamed[i] || '';
+                if (origChar !== newChar) {
+                    result.charDiff.push({
+                        pos: i,
+                        original: origChar,
+                        new: newChar
+                    });
+                }
+            }
+
+            result.similar = result.charDiff.length === 0;
+            return result;
+        }
+
+        // Extract image dimensions
+        async function getImageDimensions(arrayBuffer) {
+            return new Promise((resolve) => {
+                const blob = new Blob([arrayBuffer]);
+                const url = URL.createObjectURL(blob);
+                const img = new Image();
+                
+                img.onload = function() {
+                    const dims = `${this.width}x${this.height}`;
+                    URL.revokeObjectURL(url);
+                    resolve(dims);
+                };
+                
+                img.onerror = function() {
+                    URL.revokeObjectURL(url);
+                    resolve(null);
+                };
+                
+                img.src = url;
+            });
+        }
+
+        // Render files list
+        async function renderFilesList() {
+            renamerElements.filesList.innerHTML = '';
+
+            for (let idx = 0; idx < renamerState.files.length; idx++) {
+                const file = renamerState.files[idx];
+                const newName = await generateRenamedFile(idx);
+                file.newName = newName;
+                file.comparison = compareFilenames(file.originalName, newName);
+
+                const fileEl = document.createElement('div');
+                fileEl.className = 'file-item';
+                const comparisonClass = file.comparison.similar ? 'comparison-match' : 'comparison-diff';
+                const comparisonIcon = file.comparison.similar ? '✓' : '⚠';
+                
+                fileEl.innerHTML = `
+                    <div>
+                        <div class="file-item-info">
+                            <div class="file-item-name">📄 ${file.originalName}</div>
+                            <div class="file-item-new-name">→ ${newName} <span class="${comparisonClass}">${comparisonIcon}</span></div>
+                        </div>
+                        <div class="file-item-actions">
+                            <button class="rename-btn" data-index="${idx}" title="Apply selections to this file">Apply</button>
+                            <button class="compare-btn" data-index="${idx}" title="Show differences">Compare</button>
+                            <button class="remove-btn" data-index="${idx}" title="Remove from list">✕</button>
+                        </div>
+                    </div>
+                `;
+                
+                const comparisonDiv = document.createElement('div');
+                comparisonDiv.className = 'comparison-result';
+                if (!file.comparison.similar && file.comparison.charDiff.length > 0) {
+                    let diffText = 'Changes: ';
+                    file.comparison.charDiff.forEach(diff => {
+                        diffText += `Pos ${diff.pos}: '${diff.original || 'empty'}' → '${diff.new || 'empty'}' | `;
+                    });
+                    comparisonDiv.innerHTML = diffText;
+                } else if (file.comparison.similar) {
+                    comparisonDiv.innerHTML = '<span class="comparison-match">✓ Names match - No changes detected</span>';
+                }
+                fileEl.appendChild(comparisonDiv);
+
+                fileEl.querySelector('.rename-btn').addEventListener('click', () => {
+                    applySelectionsToFile(idx);
+                });
+
+                fileEl.querySelector('.compare-btn').addEventListener('click', () => {
+                    comparisonDiv.classList.toggle('show');
+                });
+
+                fileEl.querySelector('.remove-btn').addEventListener('click', () => {
+                    renamerState.files.splice(idx, 1);
+                    renderFilesList();
+                });
+
+                renamerElements.filesList.appendChild(fileEl);
+            }
+
+            updateCompareTab();
+        }
+
+        // Generate renamed filename based on current selections
+        async function generateRenamedFile(index) {
+            const file = renamerState.files[index];
+            const ext = file.originalName.substring(file.originalName.lastIndexOf('.'));
+            
+            // Generate base name without extension for renamer
+            const parts = Object.keys(CONFIG.columns)
+                .map(col => state.selections[col])
+                .filter(p => p);
+            let baseName = parts.length ? parts.join(state.separator) : '';
+
+            // Handle Dynamic resolution
+            if (state.selections['resolution'] === 'Dynamic' && file.fileData) {
+                try {
+                    const arrayBuffer = await file.fileData.async('arraybuffer');
+                    const dims = await getImageDimensions(arrayBuffer);
+                    if (dims) {
+                        // Replace 'Dynamic' with actual dimensions in the generated name
+                        baseName = baseName.replace('Dynamic', dims);
+                    }
+                } catch (err) {
+                    console.error('Error extracting dimensions:', err);
+                }
+            }
+
+            if (!baseName) {
+                return file.originalName;
+            }
+
+            // Append original extension
+            let newName = baseName + ext;
+
+            // Check for duplicates and add suffix
+            const existingNames = renamerState.files
+                .filter((_, i) => i !== index)
+                .map(f => f.newName)
+                .filter(n => n);
+
+            let counter = 1;
+            let testName = newName;
+            while (existingNames.includes(testName)) {
+                const nameWithoutExt = baseName + '-' + counter;
+                testName = nameWithoutExt + ext;
+                counter++;
+            }
+
+            return testName;
+        }
+
+        // Apply selections to file
+        async function applySelectionsToFile(index) {
+            const newName = await generateRenamedFile(index);
+            renamerState.files[index].newName = newName;
+            renamerState.files[index].comparison = compareFilenames(renamerState.files[index].originalName, newName);
+            renderFilesList();
+            showToast('Applied to file');
+        }
+
+        // Download renamed ZIP
+        renamerElements.downloadBtn.addEventListener('click', async () => {
+            if (!renamerState.zipFile || renamerState.files.length === 0) {
+                showToast('No files to download');
+                return;
+            }
+
+            renamerElements.downloadBtn.disabled = true;
+            renamerElements.downloadBtn.textContent = '⏳ Creating...';
+
+            try {
+                const JSZip = window.JSZip || (await loadJSZip());
+                const zip = new JSZip();
+                const originalZip = new JSZip();
+                await originalZip.loadAsync(renamerState.zipFile);
+
+                // Copy files with new names
+                for (const [path, fileObj] of Object.entries(originalZip.files)) {
+                    if (!fileObj.dir) {
+                        const file = renamerState.files.find(f => f.originalPath === path);
+                        const newPath = file ? file.newName : path.split('/').pop();
+                        const data = await fileObj.async('arraybuffer');
+                        zip.file(newPath, data);
+                    }
+                }
+
+                // Generate download
+                const blob = await zip.generateAsync({ type: 'blob' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = renamerState.zipFile.name;
+                link.click();
+                URL.revokeObjectURL(url);
+
+                showToast('ZIP downloaded!');
+            } catch (err) {
+                showToast('Error creating ZIP');
+                console.error(err);
+            } finally {
+                renamerElements.downloadBtn.disabled = false;
+                renamerElements.downloadBtn.textContent = '⬇ Download Renamed ZIP';
+            }
+        });
+
+        // Apply modifier to all files
+        document.getElementById('applyModifierBtn').addEventListener('click', async () => {
+            const prefix = document.getElementById('modifierPrefix').value.trim();
+            const suffix = document.getElementById('modifierSuffix').value.trim();
+
+            if (!prefix && !suffix) {
+                showToast('Enter prefix or suffix');
+                return;
+            }
+
+            for (const file of renamerState.files) {
+                if (file.newName) {
+                    const ext = file.newName.substring(file.newName.lastIndexOf('.'));
+                    const baseName = file.newName.substring(0, file.newName.lastIndexOf('.'));
+                    file.newName = (prefix ? prefix + '_' : '') + baseName + (suffix ? '_' + suffix : '') + ext;
+                    file.comparison = compareFilenames(file.originalName, file.newName);
+                }
+            }
+
+            renderFilesList();
+            showToast('Modifier applied');
+        });
+
+        // Clear
+        renamerElements.clearBtn.addEventListener('click', () => {
+            renamerState.files = [];
+            renamerState.zipFile = null;
+            renamerElements.fileInput.value = '';
+            renamerElements.filesSection.style.display = 'none';
+            renamerElements.uploadZone.style.display = 'block';
+            document.getElementById('modifierSection').style.display = 'none';
+            document.getElementById('modifierPrefix').value = '';
+            document.getElementById('modifierSuffix').value = '';
+            showToast('Cleared');
+        });
+    </script>
+</body>
+</html>
